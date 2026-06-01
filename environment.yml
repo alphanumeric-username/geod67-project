@@ -1,0 +1,10 @@
+name: geod67-unet-fwi
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - tensorflow
+  - keras
+  - matplotlib
+  - numpy
+  - scipy
