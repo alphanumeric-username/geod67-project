@@ -2,27 +2,6 @@ import tensorflow as tf
 from tensorflow.keras import layers, models
 
 
-# class Unet():
-#     def __init__(self, nx, nz):
-#         self.nx = nx
-#         self.nz = nz
-
-#         self._model = self._create_net()
-
-
-
-#     def _create_net(self):
-
-#         model = models.Sequential()
-
-#         encoder = [
-
-#         ]
-
-
-#         pass
-
-
 def _3x3ConvBatchRelu(nchannels, input_shape=None, add_max_pooling=False):
     l = [
         layers.Conv2D(nchannels, (3,3), input_shape=input_shape, data_format='channels_first'),

@@ -33,10 +33,12 @@ class AquisitionParameters:
 
     def update_rec_data(self, ti, u):
         for r in range(self.rec_positions.shape[0]):
-            # self.rec_data[r, ti] = u[self.rec_positions[r]]
             xr = tuple(self.rec_positions[r].tolist())
             self.rec_data[r, ti] = u[xr]
 
+
+    def reset(self):
+        self.rec_data = np.zeros((self.rec_positions.shape[0], self.nt), dtype=self.src_wavelet.dtype)
     
 
     def adjoint_parameters(self):

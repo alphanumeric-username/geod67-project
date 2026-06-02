@@ -23,21 +23,17 @@ class ForwardOperator:
 
         nt = self.aquisition_parameters.nt
         dt = self.aquisition_parameters.dt
-        # src = lambda ti: self.aquisition_parameters.src(ti)
 
         for ti in range(nt):
-            # print(ti, '/', nt)
-            u_next = vp.data**2 * dt**2 * fd.lap2D(u, vp.hx, vp.hz) + 2 * u - u_prev#  - dt * (u - u_prev) * self.damp_mask
-            # u_next = vp.data**2 * dt**2 * fd.lap2D(u, vp.hx, vp.hz) + 2 * u - u_prev  - dt * (u - u_prev) * self.damp_mask
-            # u_next = vp.data**2 * dt**2 * fd.lap2D(u, vp.hx, vp.hz, mode='constant') + 2 * u - u_prev  - dt * (u - u_prev) * self.damp_mask
+            u_next = vp.data**2 * dt**2 * fd.lap2D(u, vp.hx, vp.hz) + 2 * u - u_prev
             u_next += -dt * self.damp_mask * (u_next - u_prev)/2
+            
             src_i = self.aquisition_parameters.src(ti)
             for j in range(self.aquisition_parameters.src_positions.shape[0]):
                 xs = tuple(self.aquisition_parameters.src_positions[j].tolist())
                 u_next[xs] += vp.data[xs] **2 * dt**2 * src_i[j]
 
             if np.sum(np.isnan(u_next)) > 0:
-                print('Nan')
                 return u_history
 
             u_prev = u

@@ -15,6 +15,3 @@ class VelocityModel:
     @property
     def shape(self):
         return self.data.shape
-    
-    # def __getitem__(self, key):
-    #     if 

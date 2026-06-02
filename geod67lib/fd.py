@@ -46,8 +46,4 @@ def lap2D(f, hx, hz, **kwargs):
     """
     Second-order 2D laplacian operator
     """
-    ix_p1 = 0
-    ix_0 = 0
-    ix_m1 = 0
-
     return d(f, hx, 0, **kwargs) + d(f, hz, 1, **kwargs)
