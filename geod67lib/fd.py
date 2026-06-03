@@ -1,6 +1,21 @@
 # Finite differences methods
 
 import numpy as np
+from scipy.special import binom
+
+
+def fd_coefficients(derivative_order, window_half_size):
+    m = derivative_order
+    N = window_half_size
+
+    coeffs = []
+    if m%2 == 0:
+        pass
+    else:
+        pass
+
+    pass
+
 
 
 def shift2d(f, s, axis=0):
@@ -33,6 +48,14 @@ def shift(f, s, axis=0, **kwargs):
     
 
 
+def d2(f, h, axis=0, **kwargs):
+    f_p1 = shift(f, 1, axis, **kwargs)
+    f_0 = f
+    f_m1 = shift(f, -1, axis, **kwargs)
+
+    return 1/h**2 * (f_p1 - 2 * f_0 + f_m1)
+
+
 def d(f, h, axis=0, **kwargs):
     f_p1 = shift(f, 1, axis, **kwargs)
     f_0 = f
@@ -42,8 +65,12 @@ def d(f, h, axis=0, **kwargs):
 
 
 
-def lap2D(f, hx, hz, **kwargs):
+def lap(f, hx, hz, **kwargs):
     """
     Second-order 2D laplacian operator
     """
-    return d(f, hx, 0, **kwargs) + d(f, hz, 1, **kwargs)
+    return d2(f, hx, 0, **kwargs) + d2(f, hz, 1, **kwargs)
+
+
+def grad(f, hx, hz, **kwargs):
+    d2(f, hx, 0, **kwargs), d2(f, hz, 1, **kwargs)

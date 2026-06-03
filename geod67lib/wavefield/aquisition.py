@@ -45,4 +45,4 @@ class AquisitionParameters:
         """
         Swaps
         """
-        return AquisitionParameters(self.rec_positions, self.src_positions, self.dt, self.tn, self.rec_data)
+        return AquisitionParameters(self.rec_positions, self.src_positions, self.dt, self.tn, np.flip(self.rec_data, axis=1))

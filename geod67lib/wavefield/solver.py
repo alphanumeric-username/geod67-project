@@ -25,7 +25,7 @@ class ForwardOperator:
         dt = self.aquisition_parameters.dt
 
         for ti in range(nt):
-            u_next = vp.data**2 * dt**2 * fd.lap2D(u, vp.hx, vp.hz) + 2 * u - u_prev
+            u_next = vp.data**2 * dt**2 * fd.lap(u, vp.hx, vp.hz) + 2 * u - u_prev
             u_next += -dt * self.damp_mask * (u_next - u_prev)/2
             
             src_i = self.aquisition_parameters.src(ti)
