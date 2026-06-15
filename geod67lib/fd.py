@@ -1,20 +1,20 @@
 # Finite differences methods
 
 import numpy as np
-from scipy.special import binom
+from scipy.special import factorial
 
 
-def fd_coefficients(derivative_order, window_half_size):
-    m = derivative_order
-    N = window_half_size
+def taylor_coeffs(k):
+    e = np.arange(2*k + 1)
+    d = factorial(e)
 
-    coeffs = []
-    if m%2 == 0:
-        pass
-    else:
-        pass
+    X = np.array([
+        i**e/d for i in range(k, -k-1, -1)
+    ])
 
-    pass
+    W = np.linalg.inv(X)
+
+    return W
 
 
 
