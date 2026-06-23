@@ -5,18 +5,36 @@ from geod67lib import fd
 
 import numpy as np
 
-class ForwardOperator:
-    def __init__(self, aquisition_parameters: AquisitionParameters, damp_mask: np.ndarray):
-        self.aquisition_parameters = aquisition_parameters
-        self.damp_mask = damp_mask
-        # self.u_next = tf.zeros_like(vp)
-        # self.u = tf.zeros_like(vp)
-        # self.u_prev = tf.zeros_like(vp)
 
-    def forward(self, vp: VelocityModel, save_wavefield = False):
-        u_next = np.zeros_like(vp.data)
-        u = np.zeros_like(vp.data)
-        u_prev = np.zeros_like(vp.data)
+
+def dirac(pos, shape):
+    d = np.zeros(shape, dtype=np.float32)
+    d[pos] = 1
+    return tf.constant(d)
+
+
+def multiple_dirac(pos,shape,values):
+    d = np.zeros(shape, dtype=np.float32)
+    for i, p in enumerate(pos):
+        di = np.zeros(shape, dtype=np.float32)
+        di[p] = 1
+        d += di * values[i]
+        # print(values[i], d.shape)
+    return d
+
+
+
+class WaveSolverOperator:
+    def __init__(self, aquisition_parameters: AquisitionParameters):
+        self.aquisition_parameters = aquisition_parameters
+
+
+    def forward(self, vp: VelocityModel, damp_mask: tf.Tensor = None, save_wavefield = False, fd_order=2):
+        u_next = tf.zeros_like(vp.data)
+        u = tf.zeros_like(vp.data)
+        u_prev = tf.zeros_like(vp.data)
+
+        dop = fd.DifferentialOperator(fd_order, vp.hz, vp.hz)
 
         if save_wavefield:
             u_history = []
@@ -24,30 +42,49 @@ class ForwardOperator:
         nt = self.aquisition_parameters.nt
         dt = self.aquisition_parameters.dt
 
+        pre_values = []
+        pos = []
+        for j in range(self.aquisition_parameters.src_positions.shape[0]):
+            xs = np.array(self.aquisition_parameters.src_positions[j], dtype=np.int32).tolist()
+            xs.insert(0, 0)
+            xs.append(0)
+            xs = tuple(xs)
+            pos.append(xs)
+            pre_values.append(vp.data[xs] **2 * dt**2)
+        # pos = tf.constant(pos)
+
         for ti in range(nt):
-            u_next = vp.data**2 * dt**2 * fd.lap(u, vp.hx, vp.hz) + 2 * u - u_prev
-            u_next += -dt * self.damp_mask * (u_next - u_prev)/2
+            # if ((ti + 1) % 50) == 0:
+            #     print(ti + 1, '/', nt)
+            # u_next = vp.data**2 * dt**2 * fd.lap(u, vp.hx, vp.hz, fd_order=fd_order) + 2 * u - u_prev
+            u_next = vp.data**2 * dt**2 * dop.lap(u) + 2 * u - u_prev
+            if not(damp_mask is None):
+                u_next += -dt * damp_mask * (u_next - u_prev)/2
             
             src_i = self.aquisition_parameters.src(ti)
+            values = []
+            # pos = []
             for j in range(self.aquisition_parameters.src_positions.shape[0]):
-                xs = tuple(self.aquisition_parameters.src_positions[j].tolist())
-                u_next[xs] += vp.data[xs] **2 * dt**2 * src_i[j]
-
-            if np.sum(np.isnan(u_next)) > 0:
-                return u_history
+                values.append(pre_values[j] * src_i[j])
+            
+            u_next = tf.sparse.add(u_next, tf.SparseTensor(pos, values, u_next.shape))
 
             u_prev = u
             u = u_next
 
-            self.aquisition_parameters.update_rec_data(ti, u)
+            self.aquisition_parameters.update_rec_data(ti, 1*u)
 
             if save_wavefield:
-                u_history.append(u)
+                u_history.append(1*u)
         
         if save_wavefield:
             return u_history
         return []
 
 
+    def __call__(self, *args, **kwargs):
+        self.forward(*args, **kwargs)
+    
+
     def adjoint(self):
-        return ForwardOperator(self.aquisition_parameters.adjoint_parameters())
+        return WaveSolverOperator(self.aquisition_parameters.adjoint_parameters())
