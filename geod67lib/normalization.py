@@ -1,11 +1,11 @@
 import tensorflow as tf
 
 
-def create_normalization_transforms(vp_max, vp_min):
+def create_normalization_transforms(vp_min, vp_max):
     a = vp_min
     b = vp_max
 
-    forward = lambda vp : tf.math.log((vp - a)/(b - vp))
-    inverse = lambda m : (a + b * tf.math.exp(m))/(1 + tf.math.exp(m))
+    normalize = lambda vp : tf.math.log((vp - a)/(b - vp))
+    denormalize = lambda m : (a + b * tf.math.exp(m))/(1 + tf.math.exp(m))
 
-    return forward, inverse
+    return normalize, denormalize
