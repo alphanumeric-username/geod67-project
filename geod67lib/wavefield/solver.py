@@ -45,6 +45,7 @@ class WaveSolverOperator:
         dt = self.aquisition_parameters.dt
 
         pre_values = []
+        src_values = []
         pos = []
         for j in range(self.aquisition_parameters.src_positions.shape[0]):
             xs = np.array(self.aquisition_parameters.src_positions[j], dtype=np.int32).tolist()
@@ -55,6 +56,14 @@ class WaveSolverOperator:
             # pre_values.append(vp.data[xs] **2 * dt**2)
             pre_values.append(vp.data[xs] * vp.data[xs] * dt*dt)
         # pos = tf.constant(pos)
+
+        for ti in range(nt):
+            # values.append([])
+            v = []
+            for j in range(self.aquisition_parameters.src_positions.shape[0]):
+                src_ti = self.aquisition_parameters.src(ti)
+                v.append(pre_values[j] * src_ti[j])
+            src_values.append(tf.SparseTensor(pos, v, u_next.shape))
 
         dt2 = dt * dt
         vp_data2 = vp.data * vp.data
@@ -79,13 +88,15 @@ class WaveSolverOperator:
             
             # print('Source:', end='  ')
             # tm.start()
-            src_ti = self.aquisition_parameters.src(ti)
-            values = []
+            # src_ti = self.aquisition_parameters.src(ti)
+            # values = []
             # pos = []
-            for j in range(self.aquisition_parameters.src_positions.shape[0]):
-                values.append(pre_values[j] * src_ti[j])
+            # for j in range(self.aquisition_parameters.src_positions.shape[0]):
+            #     values.append(pre_values[j] * src_ti[j])
             
-            u_next = tf.sparse.add(u_next, tf.SparseTensor(pos, values, u_next.shape))
+            # u_next = tf.sparse.add(u_next, tf.SparseTensor(pos, values, u_next.shape))
+            # u_next = tf.sparse.add(u_next, tf.SparseTensor(pos, values[ti], u_next.shape))
+            u_next = tf.sparse.add(u_next, src_values[ti])
             # print(tm.stop())
 
             u_prev = u
@@ -93,12 +104,12 @@ class WaveSolverOperator:
 
             # print('Update:', end='  ')
             # tm.start()
-            self.aquisition_parameters.update_rec_data(ti, 1*u)
+            self.aquisition_parameters.update_rec_data(ti, u)
             # print(tm.stop())
             # print()
 
             if save_wavefield:
-                u_history.append(1*u)
+                u_history.append(u)
         
         # print('Main Loop:', tm2.stop())
         if save_wavefield:
