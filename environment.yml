@@ -3,7 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.11
-  - tensorflow
+  - tensorflow<2.17
   - keras
   - matplotlib
   - numpy

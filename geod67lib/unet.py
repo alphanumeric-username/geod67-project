@@ -51,7 +51,9 @@ def _2x2TransConv_Concat_3x3Conv_BatchNorm_ReLU(nchannels, concat_input):
     def f(x):
         # x = layers.Conv2DTranspose(nchannels, (2,2), data_format='channels_first', strides=2)(x)
         x = layers.Conv2DTranspose(nchannels, (2,2), strides=2)(x)
-        x = layers.Concatenate(axis=-1)([x, concat_input[:,:, :x.shape[2], :x.shape[3]]])
+        # x = layers.UpSampling2D(size=(2,2),interpolation='nearest')(x)
+        # x = layers.Concatenate(axis=-1)([x, concat_input[:,:, :x.shape[2], :x.shape[3]]])
+        x = layers.Concatenate(axis=-1)([x, concat_input])
         # x = layers.Concatenate(axis=0)([x, concat_input])
         x = _3x3Conv_BatchNorm_ReLU(nchannels)(x)
 
