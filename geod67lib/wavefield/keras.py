@@ -1,3 +1,5 @@
+from geod67lib.plotting import plot_image
+
 from .solver import WaveSolverOperator
 from .aquisition import AquisitionParameters
 from .model import VelocityModel
@@ -17,10 +19,11 @@ def pad_edge(x: tf.Tensor, s: int):
 
 class WaveSolverLayer(Layer):
     def __init__(self, aquisition_parameters: AquisitionParameters, damp_mask: np.ndarray, 
-                 src_positions: np.ndarray, spacing, fd_order=2, **kwargs):
+                 water_mask: np.ndarray, src_positions: np.ndarray, spacing, fd_order=2, **kwargs):
         
         self.op = WaveSolverOperator(aquisition_parameters)
         self.damp_mask = damp_mask
+        self.water_mask = water_mask
         self.src_positions = src_positions
         self.hx = spacing[0]
         self.hz = spacing[1]
@@ -29,10 +32,13 @@ class WaveSolverLayer(Layer):
     
     
     def call(self, vp_data):
+        # vp_data = vp_data * self.water_mask
         nbl = (self.damp_mask.shape[1] - vp_data.shape[1])//2
         vp_data = pad_edge(vp_data, nbl)
+        # tf.debugging.check_numerics(vp_data, message=f'Checking vp')
 
         vp = VelocityModel(vp_data, self.hx, self.hz)
+
         dcalc = []
         op = self.op
         for isrc in range(self.src_positions.shape[0]):
@@ -40,6 +46,7 @@ class WaveSolverLayer(Layer):
             op.aquisition_parameters.reset()
             op.aquisition_parameters.src_positions[0] = src_pos
             op.forward(vp, self.damp_mask, fd_order=self.fd_order)
+            # tf.debugging.check_numerics(op.aquisition_parameters.rec_data, message=f'Checking shot {isrc + 1}')
             dcalc.append(op.aquisition_parameters.rec_data)
         dcalc = tf.stack(dcalc)
         return dcalc

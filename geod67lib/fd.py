@@ -79,15 +79,16 @@ class DifferentialOperator():
                 self.kernels[key] = kernel
     
 
+    @tf.function
     def d(self, f, axis=0, op_order=1):
         kernel = self.kernels[(axis, op_order)]
         out = tf.nn.conv2d(f, kernel, strides=1, padding='SAME')
         return out
     
-
+    @tf.function
     def lap(self, f):
         return self.d(f, axis=0, op_order=2) + self.d(f, axis=1, op_order=2)
 
-
+    @tf.function
     def grad(self, f):
         self.d(f, axis=0, op_order=1), self.d(f, axis=1, op_order=1)
