@@ -5,9 +5,6 @@ import tensorflow as tf
 import numpy as np
 
 class AquisitionParameters:
-    pass
-
-class AquisitionParameters:
     def __init__(self, src_positions, rec_positions, dt, tn, src_wavelet):
         self.src_positions = src_positions
         self.rec_positions = rec_positions
@@ -58,28 +55,20 @@ class AquisitionParameters:
             self._last_rec_pos = self.rec_positions
         return self._rec_indices_cache
 
-
+    @property
     def src_indices(self):
-        pass
-
-    # def update_rec_data(self, ti, u):
-    #     for r in range(self.rec_positions.shape[0]):
-    #         xr = tuple(np.array(self.rec_positions[r], dtype=np.int32).tolist())
-    #         print(xr, u.shape, u[xr], self.rec_data[r, ti], self.rec_data.shape)
-    #         self.rec_data[r, ti] = u[xr]
+        pos = []
+        for s in range(self.src_positions.shape[0]):
+            xs = self.src_positions[s]
+            xs = (0, xs[0], xs[1], 0)
+            pos.append(xs)
+            
+        return pos
 
     def update_rec_data(self, ti, u):
-        # indices = []
-        # for r in range(self.rec_positions.shape[0]):
-        #     xr = np.array(self.rec_positions[r], dtype=np.int32).tolist()
-        #     xr.insert(0, 0)
-        #     xr.append(0)
-        #     xr = tuple(xr)
-        #     indices.append(xr)
         recs_at_ti = tf.gather_nd(u, indices=self.rec_indices)
         recs_at_ti = tf.reshape(recs_at_ti, (recs_at_ti.shape[0], 1))
         self.rec_data = tf.concat([self.rec_data, recs_at_ti], axis=-1)
-            # self._rec_data_buffer[r].append(u[xr])
     
     
     def reset(self):

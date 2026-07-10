@@ -18,7 +18,6 @@ def multiple_dirac(pos,shape,values):
         di = np.zeros(shape, dtype=np.float32)
         di[p] = 1
         d += di * values[i]
-        # print(values[i], d.shape)
     return d
 
 
@@ -43,13 +42,9 @@ class WaveSolverOperator:
 
         pre_values = []
         src_values = []
-        pos = []
-        for j in range(self.aquisition_parameters.src_positions.shape[0]):
-            xs = np.array(self.aquisition_parameters.src_positions[j], dtype=np.int32).tolist()
-            xs.insert(0, 0)
-            xs.append(0)
-            xs = tuple(xs)
-            pos.append(xs)
+        src_pos = self.aquisition_parameters.src_indices
+        
+        for xs in src_pos:
             pre_values.append(vp.data[xs] * vp.data[xs] * dt*dt)
 
         for ti in range(nt):
@@ -57,7 +52,8 @@ class WaveSolverOperator:
             for j in range(self.aquisition_parameters.src_positions.shape[0]):
                 src_ti = self.aquisition_parameters.src(ti)
                 v.append(pre_values[j] * src_ti[j])
-            src_values.append(tf.SparseTensor(pos, v, u_next.shape))
+                # print(pre_values[j], src_ti[j])
+            src_values.append(tf.SparseTensor(src_pos, v, u_next.shape))
 
         dt2 = dt * dt
         vp_data2 = vp.data * vp.data

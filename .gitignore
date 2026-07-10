@@ -1,3 +1,4 @@
 learning
 __pycache__
 .vscode
+*.txt

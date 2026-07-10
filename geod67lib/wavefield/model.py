@@ -33,3 +33,15 @@ class VelocityModel:
     @property
     def sliced_data(self):
         return self.data[0,:,:,0]
+    
+    @property
+    def inner_data(self):
+        if self.nbl == 0:
+            return self.data
+        return self.data[:, self.nbl:-self.nbl, self.nbl:-self.nbl, :]
+
+    @property
+    def sliced_inner_data(self):
+        if self.nbl == 0:
+            return self.sliced_data
+        return self.data[0, self.nbl:-self.nbl, self.nbl:-self.nbl, 0]
